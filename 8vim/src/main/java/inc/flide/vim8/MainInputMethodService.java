@@ -18,6 +18,7 @@ import inc.flide.vim8.keyboardHelpers.InputMethodServiceHelper;
 import inc.flide.vim8.keyboardHelpers.KeyboardAction;
 import inc.flide.vim8.preferences.SharedPreferenceHelper;
 import inc.flide.vim8.structures.FingerPosition;
+import inc.flide.vim8.utilities.Utilities;
 import inc.flide.vim8.views.NumberKeypadView;
 import inc.flide.vim8.views.SelectionKeypadView;
 import inc.flide.vim8.views.SymbolKeypadView;
@@ -37,6 +38,9 @@ public class MainInputMethodService extends InputMethodService {
     private int shiftLockFlag;
     private int capsLockFlag;
     private int modifierFlags;
+
+    private int selectionStart;
+    private int selectionEnd;
 
     private void setCurrentKeypadView(View view){
         this.currentKeypadView = view;
@@ -99,6 +103,14 @@ public class MainInputMethodService extends InputMethodService {
         clearModifierFlags();
     }
 
+    @Override
+    public void onUpdateSelection(int oldSelStart, int oldSelEnd, int newSelStart, int newSelEnd, int candidatesStart, int candidatesEnd) {
+        super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd);
+
+        selectionStart = newSelStart;
+        selectionEnd = newSelEnd;
+    }
+
     public Map<List<FingerPosition>, KeyboardAction> buildKeyboardActionMap() {
         return InputMethodServiceHelper.initializeKeyboardActionMap(getResources(), getApplicationContext());
     }
@@ -110,6 +122,49 @@ public class MainInputMethodService extends InputMethodService {
 
     private void clearModifierFlags() {
         modifierFlags = 0;
+    }
+
+    public void prevWord(int n) {
+        if (selectionStart != selectionEnd) {
+            return;
+        }
+
+        String text = (String) inputConnection.getTextBeforeCursor(n, 0);
+        if (text.isEmpty()) {
+            return;
+        }
+
+        int prevWordIndex = Utilities.getPrevWordIndex(text.length() - 1, text);
+
+        if (prevWordIndex != -1) {
+            moveCursor(-(text.length() - prevWordIndex));
+        } else {
+            moveCursor(-text.length());
+        }
+    }
+
+    public void nextWord(int n) {
+        if (selectionStart != selectionEnd) {
+            return;
+        }
+
+        CharSequence text = inputConnection.getTextAfterCursor(n, 0);
+        int nextWordIndex = Utilities.getNextWordIndex(0, text);
+
+        if (nextWordIndex != -1) {
+            moveCursor(nextWordIndex);
+        }else{
+            moveCursor(text.length());
+        }
+
+    }
+
+    public void moveCursor(int offset) {
+        if (selectionStart != selectionEnd) {
+            return;
+        }
+
+        inputConnection.setSelection(selectionStart + offset, selectionEnd + offset);
     }
 
     public void sendDownKeyEvent(int keyEventCode, int flags) {

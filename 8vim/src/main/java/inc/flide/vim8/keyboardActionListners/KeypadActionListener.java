@@ -127,6 +127,18 @@ public class KeypadActionListener {
                 case KeyEvent.KEYCODE_ENTER:
                     mainInputMethodService.commitImeOptionsBasedEnter();
                     break;
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    mainInputMethodService.nextWord(100);
+                    break;
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    mainInputMethodService.prevWord(100);
+                    break;
+                case KeyEvent.KEYCODE_DPAD_LEFT:
+                    mainInputMethodService.moveCursor(-1);
+                    break;
+                case KeyEvent.KEYCODE_DPAD_RIGHT:
+                    mainInputMethodService.moveCursor(1);
+                    break;
                 default:
                     mainInputMethodService.sendKey(primaryCode, keyFlags);
                     mainInputMethodService.setShiftLockFlag(0);
@@ -171,7 +183,7 @@ public class KeypadActionListener {
     }
 
     public boolean isShiftSet() {
-        return mainInputMethodService.getShiftLockFlag() == KeyEvent.META_SHIFT_ON ;
+        return mainInputMethodService.getShiftLockFlag() == KeyEvent.META_SHIFT_ON;
     }
 
     public boolean isCapsLockSet() {
